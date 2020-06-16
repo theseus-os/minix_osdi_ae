@@ -394,3 +394,55 @@ proc_name(int proc_nr)
   return p->p_name;
 }
 
+void uzenetszam_dmp() 
+{
+	register struct proc *rp;
+	int i=0, j=0, k=0;
+	int sor = 0, oszlop = 0;
+	static int mennytol = 1;
+
+	printf("Custom kernel message\n");
+	if (sys_getproctab(proc) != OK) {
+	      printf("IS: warning: couldn't get copy of process table:\n");
+	      return;
+	  }
+
+	printf ("Start [%d %d]\n", mennytol, END_PROC_ADDR - BEG_PROC_ADDR);
+	printf("%7s:","X\\Y");
+
+	printf("%7s:", "total");
+
+	for (rp = BEG_PROC_ADDR; rp < END_PROC_ADDR && oszlop < 8; ++rp) {
+		if(isemptyp(rp)) continue;
+		++j;
+		if(j < mennytol) continue;
+		++oszlop;
+		printf("%7s:", rp->p_name);
+	}
+	printf("\n");
+
+	for (rp = BEG_PROC_ADDR; rp < END_PROC_ADDR && sor < 22 ; ++rp) {
+		if(isemptyp(rp)) continue;
+		++k;
+		if(k < mennytol) continue;
+		++sor;
+		j = oszlop = 0;
+		printf("%7s:",rp->p_name);
+		printf("%7d:",rp->tot_msgs);
+		for (i=0;i< NR_TASKS + NR_PROCS && oszlop < 8 ; ++i) {
+			if(isemptyp(&proc[i])) continue;
+			++j;
+			if(j < mennytol) continue;
+			++oszlop;
+			printf("%7d:", rp->uzenetszam[i]);
+		}
+	
+		printf("\n");
+	}
+	mennytol +=21;
+	if(mennytol > END_PROC_ADDR - BEG_PROC_ADDR) mennytol = 1;
+}
+	
+
+
+

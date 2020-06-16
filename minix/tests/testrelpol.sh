@@ -349,6 +349,9 @@ multi_lu_test_wrapper() {
 # main()
 #######################################################################
 main() {
+
+	echo "Nami"
+
 	local labels service_policies X11
 
 	# If there is a running X server, skip the input driver

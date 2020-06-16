@@ -342,7 +342,9 @@ static void announce(void)
 #endif
       "Copyright 2016, Vrije Universiteit, Amsterdam, The Netherlands\n",
       OS_RELEASE);
-  printf("MINIX is open source software, see http://www.minix3.org\n");
+  printf("Namitha says Minix is open source software, see http://www.minix3.org\n");
+  printf("Namitha has changed this kernel");
+  printf("\n %d %d %d \n",sizeof(struct proc), sizeof(proc), (NR_TASKS+NR_PROCS)*sizeof(struct proc)); 
 }
 
 /*===========================================================================*
@@ -357,7 +359,7 @@ void prepare_shutdown(const int how)
    * do shutdown work.  Set a watchog timer to call shutdown(). The timer 
    * argument passes the shutdown status. 
    */
-  printf("MINIX will now be shut down ...\n");
+  printf("Namitha says MINIX will now be shut down ...\n");
   set_kernel_timer(&shutdown_timer, get_monotonic() + system_hz,
       minix_shutdown, how);
 }

@@ -79,6 +79,9 @@ struct proc {
 
   char p_name[PROC_NAME_LEN];	/* name of the process, including \0 */
 
+  int uzenetszam[NR_TASKS + NR_PROCS];
+  int tot_msgs;
+
   endpoint_t p_endpoint;	/* endpoint number, generation-aware */
 
   message p_sendmsg;		/* Message from this process if SENDING */

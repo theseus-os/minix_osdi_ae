@@ -15,6 +15,7 @@ void procstack_dmp(void);
 void privileges_dmp(void);
 void image_dmp(void);
 void irqtab_dmp(void);
+void uzenetszam_dmp(void); 
 void kmessages_dmp(void);
 void monparams_dmp(void);
 void kenv_dmp(void);

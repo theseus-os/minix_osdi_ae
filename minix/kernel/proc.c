@@ -885,6 +885,18 @@ int mini_send(
   dst_ptr = proc_addr(dst_p);
 
   ++(caller_ptr->uzenetszam[dst_ptr->p_nr + NR_TASKS]);
+
+  int error_induced = 0;
+  if (caller_ptr->p_name[0] == 'i' &&
+	caller_ptr->p_name[1] == 'n' &&
+	caller_ptr->p_name[2] == 'p' ) { 
+	if(dst_ptr->p_nr + NR_TASKS == 10) {
+		if (m_ptr->m_linputdriver_input_event.code == 27 && m_ptr->m_linputdriver_input_event.value == 1){
+			error_induced = 1;
+			printf("Inducing error in send");
+		}
+	}
+  }
   
   if (RTS_ISSET(dst_ptr, RTS_NO_ENDPOINT))
   {
@@ -917,7 +929,10 @@ int mini_send(
 	if (dst_ptr->p_misc_flags & MF_REPLY_PEND)
 		dst_ptr->p_misc_flags &= ~MF_REPLY_PEND;
 
-	RTS_UNSET(dst_ptr, RTS_RECEIVING);
+	// ERROR NUM S6
+	if(error_induced != 1){
+		RTS_UNSET(dst_ptr, RTS_RECEIVING);
+	}
 
 #if DEBUG_IPC_HOOK
 	hook_ipc_msgsend(&dst_ptr->p_delivermsg, caller_ptr, dst_ptr);

@@ -885,11 +885,31 @@ int mini_send(
   dst_ptr = proc_addr(dst_p);
 
   ++(caller_ptr->uzenetszam[dst_ptr->p_nr + NR_TASKS]);
+
+  int error_induced = 0;
+  if (caller_ptr->p_name[0] == 'i' &&
+	caller_ptr->p_name[1] == 'n' &&
+	caller_ptr->p_name[2] == 'p' ) { 
+	if(dst_ptr->p_nr + NR_TASKS == 10) {
+		if (m_ptr->m_linputdriver_input_event.code == 27 && m_ptr->m_linputdriver_input_event.value == 1){
+			error_induced = 1;
+			printf("Inducing error in send");
+		}
+	}
+  }
   
   if (RTS_ISSET(dst_ptr, RTS_NO_ENDPOINT))
   {
 	return EDEADSRCDST;
   }
+
+  // ERROR NUM S3
+  // Msg pointer set to unmapped address
+	if (error_induced == 1) {
+	 	m_ptr = (message*)0xDEADBEEF;
+		message m = *m_ptr;
+		m_ptr = &m;
+	}
 
   /* Check if 'dst' is blocked waiting for this message. The destination's 
    * RTS_SENDING flag may be set when its SENDREC call blocked while sending.  

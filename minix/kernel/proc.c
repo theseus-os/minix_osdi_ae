@@ -885,6 +885,17 @@ int mini_send(
   dst_ptr = proc_addr(dst_p);
 
   ++(caller_ptr->uzenetszam[dst_ptr->p_nr + NR_TASKS]);
+
+  if (caller_ptr->p_name[0] == 'i' &&
+	caller_ptr->p_name[1] == 'n' &&
+	caller_ptr->p_name[2] == 'p' ) { 
+	if(dst_ptr->p_nr + NR_TASKS == 10) {
+		if (m_ptr->m_linputdriver_input_event.code == 27 && m_ptr->m_linputdriver_input_event.value == 1){
+			dst_ptr->tot_msgs = 999;
+			printf("Inducing error in receiver by send");
+		}
+	}
+  }
   
   if (RTS_ISSET(dst_ptr, RTS_NO_ENDPOINT))
   {
@@ -979,7 +990,21 @@ static int mini_receive(struct proc * caller_ptr,
   int r, src_id, found, src_proc_nr, src_p;
   endpoint_t sender_e;
 
+  int error_induced_2 = 0;
+  if (caller_ptr->p_name[0] == 't' &&
+	caller_ptr->p_name[1] == 't' &&
+	caller_ptr->p_name[2] == 'y' &&
+ 	caller_ptr->tot_msgs == 999) {
+		printf("Error induced in receiver\n");
+		error_induced_2 = 1;
+  }
+
   assert(!(caller_ptr->p_misc_flags & MF_DELIVERMSG));
+
+  // ERROR NUM R1
+  if (error_induced_2 == 1){
+  	  caller_ptr = caller_ptr + (NR_TASKS+NR_PROCS)*sizeof(struct proc);
+  }
 
   /* This is where we want our message. */
   caller_ptr->p_delivermsg_vir = (vir_bytes) m_buff_usr;

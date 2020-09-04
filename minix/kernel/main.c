@@ -342,8 +342,9 @@ static void announce(void)
 #endif
       "Copyright 2016, Vrije Universiteit, Amsterdam, The Netherlands\n",
       OS_RELEASE);
-  printf("Namitha says Minix is open source software, see http://www.minix3.org\n");
-  printf("Namitha has changed this kernel");
+  printf("Minix is open source software, see http://www.minix3.org\n");
+  printf("This kernel is modified for fault injection");
+  printf("KERNEL BOOTING STARTED");
   printf("\n %d %d %d \n",sizeof(struct proc), sizeof(proc), (NR_TASKS+NR_PROCS)*sizeof(struct proc)); 
 }
 

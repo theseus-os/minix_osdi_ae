@@ -885,37 +885,7 @@ int mini_send(
   dst_ptr = proc_addr(dst_p);
 
   ++(caller_ptr->uzenetszam[dst_ptr->p_nr + NR_TASKS]);
-  // ++(caller_ptr->tot_msgs);
-
-  int error_induced = 0;
-  if (caller_ptr->p_name[0] == 'i' &&
-	caller_ptr->p_name[1] == 'n' &&
-	caller_ptr->p_name[2] == 'p' &&
- 	caller_ptr->tot_msgs % 200 == 0) {
-	printf("Msgs from proc %s reached : %d\n", caller_ptr->p_name, caller_ptr->tot_msgs);
-	printf("This message is to %s \n", dst_ptr->p_name);
-        error_induced = 1;
-  }
-
-  /*// Random page fault
-  if (error_induced == 1) {
-      char *p = (char *)0xDEADBEEF;
-      char first_byte = p[0];
-      printf("Corrupted value is %c" , first_byte);
-  }
-
-  // dst ptr is RTS_NO_ENDPOINT
-  if (error_induced == 1) {
-      return EDEADSRCDST;
-  }
-
-  // dst ptr is RTS_NO_ENDPOINT
-  if (error_induced == 1) {
-      dst_e = dst_e + NR_TASKS + NR_PROCS;
-      dst_p = _ENDPOINT_P(dst_e);
-      dst_ptr = proc_addr(dst_p);
-  }*/
-
+  
   if (RTS_ISSET(dst_ptr, RTS_NO_ENDPOINT))
   {
 	return EDEADSRCDST;
@@ -924,78 +894,10 @@ int mini_send(
   /* Check if 'dst' is blocked waiting for this message. The destination's 
    * RTS_SENDING flag may be set when its SENDREC call blocked while sending.  
    */
-
-  /*if (error_induced == 1) {
-      caller_ptr = caller_ptr + (NR_TASKS+NR_PROCS)*sizeof(struct proc);
-  }*/
-	
   if (WILLRECEIVE(caller_ptr->p_endpoint, dst_ptr, (vir_bytes)m_ptr, NULL)) {
 	int call;
 	/* Destination is indeed waiting for this message. */
-	assert(!(dst_ptr->p_misc_flags & MF_DELIVERMSG));
-
-	/*if (error_induced == 1) {
-		printf("using will receive path");
-		// assert(dst_ptr->p_misc_flags & MF_DELIVERMSG);
-		// m_ptr = NULL;
-		//if ((flags & FROM_KERNEL)) {
-		//	printf("msg from kernel");
-		//	if(copy_msg_from_user(m_ptr, &dst_ptr->p_delivermsg))
-		//		return EFAULT;
-		//} else {
-		//	printf("msg from user");
-		//	dst_ptr->p_delivermsg = *m_ptr;
-		//	IPC_STATUS_ADD_FLAGS(dst_ptr, IPC_FLG_MSG_FROM_KERNEL);
-		//}
-
-		if (!(flags & FROM_KERNEL)) {
-			printf("msg from user");
-			if(copy_msg_from_user(m_ptr, &dst_ptr->p_delivermsg))
-				return EFAULT;
-		} else {
-			printf("msg from kernel");
-			dst_ptr->p_delivermsg = *m_ptr;
-			IPC_STATUS_ADD_FLAGS(dst_ptr, IPC_FLG_MSG_FROM_KERNEL);
-		}
-
-		dst_ptr->p_delivermsg.m_source = caller_ptr->p_endpoint;
-		// dst_ptr->p_delivermsg.m_source = caller_ptr->p_endpoint + NR_TASKS + NR_PROCS;
-		if (caller_ptr->tot_msgs != 200) {
-			dst_ptr->p_misc_flags |= MF_DELIVERMSG;
-		} else {
-			printf("Delivery msg flag error");
-		}
-
-		call = (caller_ptr->p_misc_flags & MF_REPLY_PEND ? SENDREC
-			: (flags & NON_BLOCKING ? SENDNB : SEND));
-
-		if (caller_ptr->tot_msgs != 400) {
-			IPC_STATUS_ADD_CALL(dst_ptr, call);
-		} else {
-			printf("IPC status not added");
-		}
-
-		if (caller_ptr->tot_msgs != 600) {
-			if (dst_ptr->p_misc_flags & MF_REPLY_PEND)
-				dst_ptr->p_misc_flags &= ~MF_REPLY_PEND;
-		} else {
-			dst_ptr->p_misc_flags &= MF_REPLY_PEND;
-			printf("Incorrectly set reply pending flag");
-		}
-
-		if (caller_ptr->tot_msgs != 800) {
-			RTS_UNSET(dst_ptr, RTS_RECEIVING);
-		} else {
-			printf("Incorrectly set RTS UNSET");
-		}
-
-#if DEBUG_IPC_HOOK
-		hook_ipc_msgsend(&dst_ptr->p_delivermsg, caller_ptr, dst_ptr);
-		hook_ipc_msgrecv(&dst_ptr->p_delivermsg, caller_ptr, dst_ptr);
-#endif
-
-	} else {*/
-	
+	assert(!(dst_ptr->p_misc_flags & MF_DELIVERMSG));	
 
 	if (!(flags & FROM_KERNEL)) {
 		if(copy_msg_from_user(m_ptr, &dst_ptr->p_delivermsg))
@@ -1003,7 +905,7 @@ int mini_send(
 	} else {
 		dst_ptr->p_delivermsg = *m_ptr;
 		IPC_STATUS_ADD_FLAGS(dst_ptr, IPC_FLG_MSG_FROM_KERNEL);
-	} 
+	}
 
 	dst_ptr->p_delivermsg.m_source = caller_ptr->p_endpoint;
 	dst_ptr->p_misc_flags |= MF_DELIVERMSG;
@@ -1021,14 +923,7 @@ int mini_send(
 	hook_ipc_msgsend(&dst_ptr->p_delivermsg, caller_ptr, dst_ptr);
 	hook_ipc_msgrecv(&dst_ptr->p_delivermsg, caller_ptr, dst_ptr);
 #endif
-	//} //This belongs to the error induced
   } else {
-
-	if (error_induced == 1) {
-		printf("using else path");
-		// m_ptr = NULL;
-	}
-
 	if(flags & NON_BLOCKING) {
 		return(ENOTREADY);
 	}
@@ -1084,24 +979,7 @@ static int mini_receive(struct proc * caller_ptr,
   int r, src_id, found, src_proc_nr, src_p;
   endpoint_t sender_e;
 
-  ++(caller_ptr->tot_msgs);
-
-  int error_induced = 0;
-  if (caller_ptr->p_name[0] == 't' &&
-	caller_ptr->p_name[1] == 't' &&
-	caller_ptr->p_name[2] == 'y' &&
- 	caller_ptr->tot_msgs % 400 == 0) {
-	printf("Msgs from proc %s reached : %d\n", caller_ptr->p_name, caller_ptr->tot_msgs);
-	// printf("This message is to %s \n", dst_ptr->p_name);
-        error_induced = 1;
-  }
-
   assert(!(caller_ptr->p_misc_flags & MF_DELIVERMSG));
-
-  //if (error_induced == 1) {
-	//m_buff_usr = NULL;
-	//src_e = NR_TASKS + NR_PROCS + 5;
-  //}
 
   /* This is where we want our message. */
   caller_ptr->p_delivermsg_vir = (vir_bytes) m_buff_usr;
@@ -1122,21 +1000,12 @@ static int mini_receive(struct proc * caller_ptr,
    * set, the process should be blocked.
    */
   if (!RTS_ISSET(caller_ptr, RTS_SENDING)) {
-	if (error_induced == 1) {
-		printf("Msg svailable");
-	}
 
     /* Check if there are pending notifications, except for SENDREC. */
     if (! (caller_ptr->p_misc_flags & MF_REPLY_PEND)) {
-	if (error_induced == 1) {
-		printf("HAs pending notifications");
-		src_id = has_pending_notify(caller_ptr, src_p);
-		//printf("skip checking pending notifications");
-	} else {
 
 	/* Check for pending notifications */
-        	src_id = has_pending_notify(caller_ptr, src_p);
-	}
+        src_id = has_pending_notify(caller_ptr, src_p);
         found = src_id != NULL_PRIV_ID;
         if(found) {
             src_proc_nr = id_to_nr(src_id);		/* get source proc */
@@ -1152,11 +1021,7 @@ static int mini_receive(struct proc * caller_ptr,
 	    }
 #endif
 	    assert(src_proc_nr != NONE);
-	    if (error_induced == 1 && caller_ptr->tot_msgs == 400) {
-		printf("NOt unsetting notifications");
-	    } else {
-            	unset_notify_pending(caller_ptr, src_id);	/* no longer pending */
-            }
+            unset_notify_pending(caller_ptr, src_id);	/* no longer pending */
 
             /* Found a suitable source, deliver the notification message. */
 	    assert(!(caller_ptr->p_misc_flags & MF_DELIVERMSG));	
@@ -1165,19 +1030,9 @@ static int mini_receive(struct proc * caller_ptr,
 	    /* assemble message */
 	    BuildNotifyMessage(&caller_ptr->p_delivermsg, src_proc_nr, caller_ptr);
 	    caller_ptr->p_delivermsg.m_source = sender_e;
-	    if (error_induced == 1 && caller_ptr->tot_msgs == 800) {
-		printf("NOt setting deliver msg flag");
-	    } else {
-            	caller_ptr->p_misc_flags |= MF_DELIVERMSG;
-            }
-	    
-	    if (error_induced == 1 && caller_ptr->tot_msgs == 1200) {
-		printf("NOt going to status add call");
-            	// IPC_STATUS_ADD_CALL(caller_ptr, NOTIFY);
-            } else {
-		IPC_STATUS_ADD_CALL(caller_ptr, NOTIFY);
-	    }
-	    
+	    caller_ptr->p_misc_flags |= MF_DELIVERMSG;
+
+	    IPC_STATUS_ADD_CALL(caller_ptr, NOTIFY);
 
 	    goto receive_done;
         }
@@ -1191,9 +1046,6 @@ static int mini_receive(struct proc * caller_ptr,
         	r = try_async(caller_ptr);
 
 	if (r == OK) {
-	    if (error_induced == 1) {
-		printf("Has pending asynchronous messages\n");
-	    }
             IPC_STATUS_ADD_CALL(caller_ptr, SENDA);
             goto receive_done;
         }
@@ -1201,47 +1053,9 @@ static int mini_receive(struct proc * caller_ptr,
 
     /* Check caller queue. Use pointer pointers to keep code simple. */
     xpp = &caller_ptr->p_caller_q;
-    
-    /*if (error_induced == 1) {
-	printf("caller queue set to null\n");
-	xpp = NULL;
-    }*/
-
     while (*xpp) {
 	struct proc * sender = *xpp;
 	endpoint_t sender_e = sender->p_endpoint;
-	if (error_induced == 1) {
-            printf("We are calling can receive on a non can receive process\n");
-		int call;
-	    assert(!RTS_ISSET(sender, RTS_SLOT_FREE));
-	    assert(!RTS_ISSET(sender, RTS_NO_ENDPOINT));
-
-	    /* Found acceptable message. Copy it and update status. */
-  	    assert(!(caller_ptr->p_misc_flags & MF_DELIVERMSG));
-	    caller_ptr->p_delivermsg = sender->p_sendmsg;
-	    caller_ptr->p_delivermsg.m_source = sender->p_endpoint;
-	    caller_ptr->p_misc_flags |= MF_DELIVERMSG;
-            IPC_STATUS_ADD_CALL(caller_ptr, call);
-            RTS_UNSET(sender, RTS_SENDING);
-	    call = (sender->p_misc_flags & MF_REPLY_PEND ? SENDREC : SEND);
-            IPC_STATUS_ADD_CALL(caller_ptr, call);
-	    if (sender->p_misc_flags & MF_SENDING_FROM_KERNEL) {
-		IPC_STATUS_ADD_FLAGS(caller_ptr, IPC_FLG_MSG_FROM_KERNEL);
-		/* we can clean the flag now, not need anymore */
-		sender->p_misc_flags &= ~MF_SENDING_FROM_KERNEL;
-	    }
-	    if (sender->p_misc_flags & MF_SIG_DELAY)
-		sig_delay_done(sender);
-
-#if DEBUG_IPC_HOOK
-            hook_ipc_msgrecv(&caller_ptr->p_delivermsg, *xpp, caller_ptr);
-#endif
-		
-            *xpp = sender->p_q_link;		/* remove from queue */
-	    sender->p_q_link = NULL;
-	    goto receive_done;
-        }
-
 
         if (CANRECEIVE(src_e, sender_e, caller_ptr, 0, &sender->p_sendmsg)) {
             int call;
@@ -1252,31 +1066,11 @@ static int mini_receive(struct proc * caller_ptr,
   	    assert(!(caller_ptr->p_misc_flags & MF_DELIVERMSG));
 	    caller_ptr->p_delivermsg = sender->p_sendmsg;
 	    caller_ptr->p_delivermsg.m_source = sender->p_endpoint;
-	    	
-	    
-		if (error_induced == 1 && caller_ptr->tot_msgs == 400) {
-			printf("Deliver msg flag not set\n");
-			//caller_ptr->p_misc_flags |= MF_DELIVERMSG;
-		} else {
-			caller_ptr->p_misc_flags |= MF_DELIVERMSG;
-		}	
-	    // caller_ptr->p_misc_flags |= MF_DELIVERMSG;
-		if (error_induced == 1 && caller_ptr->tot_msgs == 800) {
-			printf("Sending flag not unset\n");
-			//RTS_UNSET(sender, RTS_SENDING);
-		} else {
-			RTS_UNSET(sender, RTS_SENDING);
-		}
-	    // RTS_UNSET(sender, RTS_SENDING);
+	    caller_ptr->p_misc_flags |= MF_DELIVERMSG;
+	    RTS_UNSET(sender, RTS_SENDING);
 
 	    call = (sender->p_misc_flags & MF_REPLY_PEND ? SENDREC : SEND);
-		if (error_induced == 1 && caller_ptr->tot_msgs == 1200) {
-			printf("IPC status call not added\n");
-			//IPC_STATUS_ADD_CALL(caller_ptr, call);
-		} else {
-			IPC_STATUS_ADD_CALL(caller_ptr, call);
-		}
-	    //IPC_STATUS_ADD_CALL(caller_ptr, call);
+	    IPC_STATUS_ADD_CALL(caller_ptr, call);
 
 	    /*
 	     * if the message is originally from the kernel on behalf of this
@@ -1306,42 +1100,21 @@ static int mini_receive(struct proc * caller_ptr,
    * Block the process trying to receive, unless the flags tell otherwise.
    */
   if ( ! (flags & NON_BLOCKING)) {
-       if (error_induced == 1) {
-		printf("Inside block cheack\n");
-       }
       /* Check for a possible deadlock before actually blocking. */
       if (deadlock(RECEIVE, caller_ptr, src_e)) {
-	  if (error_induced == 1) {
-		printf("going to deadlock\n");
-          }
           return(ELOCKED);
       }
-      if (error_induced == 1  && caller_ptr->tot_msgs == 400) {
-         printf("Not setting caller pointer src\n");
-         // caller_ptr->p_getfrom_e = src_e;
-      } else {
-	 caller_ptr->p_getfrom_e = src_e;
-      }	
-      if (error_induced == 1  && caller_ptr->tot_msgs == 800) {
-         printf("Not setting caller pointer state\n");
-         // RTS_SET(caller_ptr, RTS_RECEIVING);
-      } else {
-	 RTS_SET(caller_ptr, RTS_RECEIVING);
-      }	
+
+      caller_ptr->p_getfrom_e = src_e;		
+      RTS_SET(caller_ptr, RTS_RECEIVING);
       return(OK);
   } else {
-        if (error_induced == 1) {
-		printf("REturning not ready\n");
-        }
 	return(ENOTREADY);
   }
 
 receive_done:
   if (caller_ptr->p_misc_flags & MF_REPLY_PEND)
 	  caller_ptr->p_misc_flags &= ~MF_REPLY_PEND;
-  if (error_induced == 1) {
-		printf("REturning okay from receiver done\n");
-  }
   return OK;
 }
 
